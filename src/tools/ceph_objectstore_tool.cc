@@ -348,7 +348,8 @@ struct metadata_section {
 };
 
 hobject_t infos_oid = OSD::make_infos_oid();
-hobject_t biginfo_oid, log_oid;
+ghobject_t pgmeta_oid, log_oid;
+hobject_t biginfo_oid;
 
 int file_fd = fd_none;
 bool debug = false;
@@ -430,13 +431,17 @@ static void invalid_filestore_path(string &path)
   exit(1);
 }
 
-int get_log(ObjectStore *fs, coll_t coll, spg_t pgid, const pg_info_t &info,
+int get_log(ObjectStore *fs, __u8 struct_ver,
+   coll_t coll, spg_t pgid, const pg_info_t &info,
    PGLog::IndexedLog &log, pg_missing_t &missing)
 {
   map<eversion_t, hobject_t> divergent_priors;
   try {
     ostringstream oss;
-    PGLog::read_log(fs, coll, META_COLL, log_oid, info, divergent_priors, log, missing, oss);
+    PGLog::read_log(fs, coll,
+		    struct_ver >= 8 ? coll : META_COLL,
+		    struct_ver >= 8 ? pgmeta_oid : log_oid,
+		    info, divergent_priors, log, missing, oss);
     if (debug && oss.str().size())
       cerr << oss.str() << std::endl;
   }
@@ -547,7 +552,7 @@ int initiate_new_remove_pg(ObjectStore *store, spg_t r_pgid)
     return ENOENT;
   }
 
-  cout << "remove " << META_COLL << " " << log_oid.oid << std::endl;
+  cout << "remove " << META_COLL << " " << log_oid.hobj.oid << std::endl;
   rmt->remove(META_COLL, log_oid);
   cout << "remove " << META_COLL << " " << biginfo_oid.oid << std::endl;
   rmt->remove(META_COLL, biginfo_oid);
@@ -602,14 +607,13 @@ int write_info(ObjectStore::Transaction &t, epoch_t epoch, pg_info_t &info,
   //Empty for this
   interval_set<snapid_t> snap_collections; // obsolete
   coll_t coll(info.pgid);
-
+  ghobject_t pgmeta_oid(OSD::make_pg_meta_oid(info.pgid));
   int ret = PG::_write_info(t, epoch,
     info, coll,
     past_intervals,
     snap_collections,
-    infos_oid,
-    struct_ver,
-    true, true);
+    pgmeta_oid,
+    true);
   if (ret < 0) ret = -ret;
   if (ret) cerr << "Failed to write info" << std::endl;
   return ret;
@@ -812,7 +816,7 @@ int do_export(ObjectStore *fs, coll_t coll, spg_t pgid, pg_info_t &info,
 
   cerr << "Exporting " << pgid << std::endl;
 
-  int ret = get_log(fs, coll, pgid, info, log, missing);
+  int ret = get_log(fs, struct_ver, coll, pgid, info, log, missing);
   if (ret > 0)
       return ret;
 
@@ -1402,6 +1406,7 @@ int do_import(ObjectStore *store, OSDSuperblock& sb)
     return 1;
   }
 
+  pgmeta_oid = OSD::make_pg_meta_oid(pgid);
   log_oid = OSD::make_pg_log_oid(pgid);
   biginfo_oid = OSD::make_pg_biginfo_oid(pgid);
 
@@ -2583,17 +2588,15 @@ int main(int argc, char **argv)
 
     Formatter *formatter = new JSONFormatter(true);
     bufferlist bl;
-    map_epoch = PG::peek_map_epoch(fs, coll, infos_oid, &bl);
+    map_epoch = PG::peek_map_epoch(fs, pgid, infos_oid, &bl);
     if (debug)
       cerr << "map_epoch " << map_epoch << std::endl;
 
     pg_info_t info(pgid);
     map<epoch_t,pg_interval_t> past_intervals;
-    hobject_t biginfo_oid = OSD::make_pg_biginfo_oid(pgid);
     interval_set<snapid_t> snap_collections;
-
     __u8 struct_ver;
-    r = PG::read_info(fs, coll, bl, info, past_intervals, biginfo_oid,
+    r = PG::read_info(fs, pgid, coll, bl, info, past_intervals,
       infos_oid, snap_collections, struct_ver);
     if (r < 0) {
       cerr << "read_info error " << cpp_strerror(-r) << std::endl;
@@ -2616,7 +2619,7 @@ int main(int argc, char **argv)
     } else if (op == "log") {
       PGLog::IndexedLog log;
       pg_missing_t missing;
-      ret = get_log(fs, coll, pgid, info, log, missing);
+      ret = get_log(fs, struct_ver, coll, pgid, info, log, missing);
       if (ret > 0)
           goto out;
 

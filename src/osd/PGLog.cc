@@ -828,6 +828,9 @@ bool PGLog::read_log(ObjectStore *store, coll_t pg_coll,
     log.can_rollback_to = info.last_update;
     ObjectMap::ObjectMapIterator p = store->get_omap_iterator(log_coll, log_oid);
     if (p) for (p->seek_to_first(); p->valid() ; p->next()) {
+      // non-log pgmeta_oid keys are prefixed with _; skip those
+      if (p->key()[0] == '_')
+	continue;
       bufferlist bl = p->value();//Copy bufferlist before creating iterator
       bufferlist::iterator bp = bl.begin();
       if (p->key() == "divergent_priors") {
