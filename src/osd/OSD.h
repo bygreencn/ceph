@@ -999,6 +999,9 @@ public:
     hobject_t oid(sobject_t("infos", CEPH_NOSNAP));
     return oid;
   }
+  static ghobject_t make_pg_meta_oid(spg_t pg) {
+    return ghobject_t::make_pgmeta(pg.pgid.pool(), pg.pgid.ps(), pg.shard);
+  }
   static void recursive_remove_collection(ObjectStore *store, coll_t tmp);
 
   /**
