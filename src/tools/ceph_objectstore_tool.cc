@@ -627,7 +627,7 @@ int write_pg(ObjectStore::Transaction &t, epoch_t epoch, pg_info_t &info,
     return ret;
   map<eversion_t, hobject_t> divergent_priors;
   coll_t coll(info.pgid);
-  PGLog::write_log(t, log, coll, log_oid, divergent_priors);
+  PGLog::write_log(t, log, coll, pgmeta_oid, divergent_priors);
   return 0;
 }
 
