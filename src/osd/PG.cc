@@ -2769,7 +2769,7 @@ void PG::write_if_dirty(ObjectStore::Transaction& t)
 {
   if (dirty_big_info || dirty_info)
     write_info(t);
-  pg_log.write_log(t, log_oid);
+  pg_log.write_log(t, coll, log_oid);
 }
 
 void PG::trim_peers()
@@ -2862,7 +2862,7 @@ void PG::append_log(
   }
 
   dout(10) << "append_log  adding " << keys.size() << " keys" << dendl;
-  t.omap_setkeys(META_COLL, log_oid, keys);
+  t.omap_setkeys(coll, log_oid, keys);
 
   pg_log.trim(&handler, trim_to, info);
 
@@ -3010,7 +3010,7 @@ void PG::read_state(ObjectStore *store, bufferlist &bl)
     pg_log.mark_log_for_rewrite();
     ObjectStore::Transaction t;
     t.remove(META_COLL, log_oid); // remove old version
-    pg_log.write_log(t, pgmeta_oid);
+    pg_log.write_log(t, coll, pgmeta_oid);
     int r = osd->store->apply_transaction(t);
     assert(!r);
   }

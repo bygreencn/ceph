@@ -619,18 +619,15 @@ int write_info(ObjectStore::Transaction &t, epoch_t epoch, pg_info_t &info,
   return ret;
 }
 
-void write_log(ObjectStore::Transaction &t, pg_log_t &log)
-{
-  map<eversion_t, hobject_t> divergent_priors;
-  PGLog::write_log(t, log, log_oid, divergent_priors);
-}
-
 int write_pg(ObjectStore::Transaction &t, epoch_t epoch, pg_info_t &info,
     pg_log_t &log, __u8 struct_ver, map<epoch_t,pg_interval_t> &past_intervals)
 {
   int ret = write_info(t, epoch, info, struct_ver, past_intervals);
-  if (ret) return ret;
-  write_log(t, log);
+  if (ret)
+    return ret;
+  map<eversion_t, hobject_t> divergent_priors;
+  coll_t coll(info.pgid);
+  PGLog::write_log(t, log, coll, log_oid, divergent_priors);
   return 0;
 }
 
