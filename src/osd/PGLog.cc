@@ -149,7 +149,7 @@ void PGLog::clear_info_log(
   const hobject_t &log_oid,
   ObjectStore::Transaction *t) {
   coll_t coll(pgid);
-  t->omap_clear(coll, log_oid);
+  t->remove(coll, log_oid);
 }
 
 void PGLog::trim(
