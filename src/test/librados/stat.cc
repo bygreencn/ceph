@@ -126,7 +126,7 @@ TEST_F(LibRadosStatPP, PoolStatPP) {
   bl1.append(buf, sizeof(buf));
   ASSERT_EQ(0, ioctx.write("foo", bl1, sizeof(buf), 0));
   std::list<std::string> v;
-  std::map<std::string,stats_map> stats;
+  stats_map stats;
   ASSERT_EQ(0, cluster.get_pool_stats(v, stats));
 }
 
@@ -242,6 +242,6 @@ TEST_F(LibRadosStatECPP, PoolStatPP) {
   bl1.append(buf, sizeof(buf));
   ASSERT_EQ(0, ioctx.write("foo", bl1, sizeof(buf), 0));
   std::list<std::string> v;
-  std::map<std::string,stats_map> stats;
+  stats_map stats;
   ASSERT_EQ(0, cluster.get_pool_stats(v, stats));
 }

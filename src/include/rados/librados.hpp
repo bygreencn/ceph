@@ -996,11 +996,13 @@ namespace librados
 		       stats_map& result);
     /// deprecated; use simpler form.  categories no longer supported.
     int get_pool_stats(std::list<std::string>& v,
-		       std::map<std::string, stats_map>& stats);
+		       std::map<std::string, stats_map>& stats)
+      __attribute__ ((deprecated));
     /// deprecated; categories no longer supported
     int get_pool_stats(std::list<std::string>& v,
                        std::string& category,
-		       std::map<std::string, stats_map>& stats);
+		       std::map<std::string, stats_map>& stats)
+      __attribute__ ((deprecated));
     int cluster_stat(cluster_stat_t& result);
     int cluster_fsid(std::string *fsid);
 
