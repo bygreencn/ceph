@@ -3997,6 +3997,15 @@ extern "C" void rados_write_op_create(rados_write_op_t write_op,
   tracepoint(librados, rados_write_op_create_exit);
 }
 
+extern "C" void rados_write_op_create2(rados_write_op_t write_op,
+				       int exclusive)
+{
+  tracepoint(librados, rados_write_op_create2_enter, write_op, exclusive);
+  ::ObjectOperation *oo = (::ObjectOperation *) write_op;
+  oo->create(!!exclusive);
+  tracepoint(librados, rados_write_op_create2_exit);
+}
+
 extern "C" void rados_write_op_write(rados_write_op_t write_op,
 				     const char *buffer,
 				     size_t len,

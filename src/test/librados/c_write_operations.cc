@@ -51,7 +51,7 @@ TEST(LibRadosCWriteOps, Xattrs) {
   // Create an object with an xattr
   rados_write_op_t op = rados_create_write_op();
   ASSERT_TRUE(op);
-  rados_write_op_create(op, LIBRADOS_CREATE_EXCLUSIVE, NULL);
+  rados_write_op_create2(op, LIBRADOS_CREATE_EXCLUSIVE);
   rados_write_op_setxattr(op, "key", "value", 5);
   ASSERT_EQ(0, rados_write_op_operate(op, ioctx, "test", NULL, 0));
   rados_release_write_op(op);
@@ -59,7 +59,7 @@ TEST(LibRadosCWriteOps, Xattrs) {
   // Check that xattr exists, if it does, delete it.
   op = rados_create_write_op();
   ASSERT_TRUE(op);
-  rados_write_op_create(op, LIBRADOS_CREATE_IDEMPOTENT, NULL);
+  rados_write_op_create2(op, LIBRADOS_CREATE_IDEMPOTENT);
   rados_write_op_cmpxattr(op, "key", LIBRADOS_CMPXATTR_OP_EQ, "value", 5);
   rados_write_op_rmxattr(op, "key");
   ASSERT_EQ(0, rados_write_op_operate(op, ioctx, "test", NULL, 0));
@@ -88,7 +88,7 @@ TEST(LibRadosCWriteOps, Write) {
   // Create an object, write and write full to it
   rados_write_op_t op = rados_create_write_op();
   ASSERT_TRUE(op);
-  rados_write_op_create(op, LIBRADOS_CREATE_EXCLUSIVE, NULL);
+  rados_write_op_create2(op, LIBRADOS_CREATE_EXCLUSIVE);
   rados_write_op_write(op, "four", 4, 0);
   rados_write_op_write_full(op, "hi", 2);
   ASSERT_EQ(0, rados_write_op_operate(op, ioctx, "test", NULL, 0));

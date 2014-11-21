@@ -309,7 +309,8 @@ namespace librados
 
     void create(bool exclusive);
     void create(bool exclusive,
-		const std::string& category); ///< NOTE: category is unused
+		const std::string& category)
+      __attribute__ ((deprecated));
 
     void write(uint64_t off, const bufferlist& bl);
     void write_full(const bufferlist& bl);
@@ -587,7 +588,8 @@ namespace librados
     // create an object
     int create(const std::string& oid, bool exclusive);
     int create(const std::string& oid, bool exclusive,
-	       const std::string& category); ///< category is unused
+	       const std::string& category) ///< category is unused
+      __attribute__ ((deprecated));
 
     /**
      * write bytes to an object at a specified offset
